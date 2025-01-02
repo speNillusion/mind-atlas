@@ -13,7 +13,7 @@
 ## Licenses:
 
 ### [Mixtral A.I](https://docs.mistral.ai/getting-started/models/weights/#license)
-### [Mind-atlas](./license.txt)
+### [Mind-atlas](./LICENSE)
 ### [4Devs](https://www.4devs.com.br/termos_de_uso)
 
 ## Technologics:
