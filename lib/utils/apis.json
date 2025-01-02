@@ -1,0 +1,7 @@
+{
+	"HUGGINGFACE_API_TOKEN": "sua_api_huggingface",
+    "VALIDA_RG_API": "https://www.4devs.com.br/ferramentas_online.php",
+    "VALIDA_CPF_API": "https://www.4devs.com.br/ferramentas_online.php",
+    "GERAR_PESSOA_API": "https://www.4devs.com.br/ferramentas_online.php",
+    "MIXTRAL_MODEL_API": "https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1/v1/chat/completions"
+}
