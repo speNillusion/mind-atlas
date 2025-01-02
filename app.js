@@ -266,7 +266,7 @@ async function starts() {
           const url = MIXTRAL_MODEL_API;
           const body = JSON.stringify({
             messages: [
-              { role: "user", content: "Responda somente em português e considere somente o que tiver depois dos dois pontos: " + prompt }
+              { role: "user", content: "linguagem => { pt-Br }, message => { " + prompt + " }" }
             ]
           });
         
