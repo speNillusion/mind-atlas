@@ -264,11 +264,15 @@ async function starts() {
 
         const chatWithModel = async (prompt) => {
           const url = MIXTRAL_MODEL_API;
-          const body = JSON.stringify({
+        
+          const body = {
+            model: "mistralai/Mixtral-8x7B-Instruct-v0.1",
             messages: [
-              { role: "user", content: "Responda somente em português e considere somente o que tiver depois dos dois pontos: " + prompt }
-            ]
-          });
+              { role: "system", content: "You are an assistant and ever answer in Portuguese." },
+              { role: "user", content: prompt }
+            ],
+            stream: false,
+          };
         
           let pensando = true;
         
@@ -277,29 +281,22 @@ async function starts() {
               if (!pensando) {
                 clearInterval(interval);
               } else {
-                escrevendo() 
-              } 
+                escrevendo();
+              }
             }, 100);
           };
         
           pensar();
         
           try {
-            const response = await fetch(url, {
-              method: 'POST',
+            const response = await axios.post(url, body, {
               headers: {
-                "Authorization": `Bearer ${HUGGINGFACE_API_TOKEN}`,
-                "Content-Type": "application/json"
+                Authorization: `Bearer ${HUGGINGFACE_API_TOKEN}`,
+                "Content-Type": "application/json",
               },
-              body: body,
             });
         
-            if (!response.ok) {
-              throw new Error(`Erro ao conversar com o modelo: ${response.status} - ${response.statusText}`);
-            }
-        
-            const data = await response.json();
-            return data.choices[0].message.content;
+            return response.data.choices[0].message.content;
         
           } catch (error) {
             console.error(`Erro:`, error);
@@ -405,7 +402,7 @@ async function starts() {
 
 if (!isCmd && isMsg) {
   const response = await chatWithModel(`${q}`);
-  await client.sendMessage(from, { text: `${response}` }, { quoted: info });
+  await client.sendMessage(from, { text: `${response.trimStart()}` }, { quoted });
 };
 
 
@@ -419,12 +416,11 @@ if (!isCmd && isMsg) {
         switch (command) {
 
           case 'jid':
-            await anuncio(`id: ${info.key.remoteJid}`);
+            anuncio(`id: ${info.key.remoteJid}`);
             break;
 
 
           case 'pessoa':
-
             const valida_rg = async (rg) => {
               const url = VALIDA_RG_API;
               const body = `acao=validar_rg&txt_rg=${rg}`;
@@ -436,18 +432,18 @@ if (!isCmd && isMsg) {
                   },
                   body: body,
                 });
-
+  
                 const data = await response.text();
-
+  
                 const result = data.includes('Verdadeiro') ? "True" : "False"
-
+  
                 return result;
-
+  
               } catch (error) {
                 console.error(`Erro:`, error);
               }
             };
-
+  
             const valida_cpf = async (cpf) => {
               const url = VALIDA_CPF_API;
               const body = `acao=validar_cpf&txt_cpf=${cpf}`;
@@ -459,18 +455,18 @@ if (!isCmd && isMsg) {
                   },
                   body: body,
                 });
-
+  
                 const data = await response.text();
-
+  
                 const result = data.includes('Verdadeiro') ? "True" : "False"
-
+  
                 return result;
-
+  
               } catch (error) {
                 console.error(`Erro:`, error);
               }
             };
-
+  
             const gerar_pessoa = async () => {
               const url = GERAR_PESSOA_API;
               const body = `acao=gerar_pessoa&sexo=I&pontuacao=S&idade=0&cep_estado=&txt_qtde=1&cep_cidade=`;
@@ -482,20 +478,21 @@ if (!isCmd && isMsg) {
                   },
                   body: body,
                 });
-
+  
                 const result = await response.text();
-
+  
                 if (result) {
                   const data = JSON.parse(result);
-
+  
                   const cpf_real = await valida_cpf(data[0].cpf)
                   const rg_real = await valida_rg(data[0].rg)
-
+                  
                   const n = data[0].celular.replace('(', '').replace(')', '').replace('-', '').replace(/ /g, '')
-                  const number = client.onWhatsApp(`55${n}@s.whatsapp.net`) === true ? "Existe" : "Não Existe"
-
-                  formated_text = `\nNome: ${data[0].nome}\nidade: ${data[0].idade}\n\nCPF: ${data[0].cpf}\nCPF real? *${cpf_real}* \n\nRG: ${data[0].rg}\nRG real? *${rg_real}*\n\nData nasc.: ${data[0].data_nasc}\nsexo: ${data[0].sexo}\nsigno: ${data[0].signo}\nmae: ${data[0].mae}\nPai: ${data[0].pai}\nEmail: ${data[0].email}\nSenha: ${data[0].senha}\nCEP: ${data[0].cep}\nEndereço: ${data[0].endereco}\nNumero: ${data[0].numero}\nBairro: ${data[0].bairro}\nCidade: ${data[0].cidade}\nEstado: ${data[0].estado}\nTell Fixo: ${data[0].telefone_fixo}\n\nCelular: ${data[0].celular}\nExist Wapp: ${number}\n\nAltura: ${data[0].altura}\nPeso: ${data[0].peso}\nTipo Sang.: ${data[0].tipo_sanguineo}\nCor: ${data[0].cor}\n`;
-
+                  const exist = await client.onWhatsApp(`55${n}@s.whatsapp.net`)
+                  const number = JSON.stringify(exist).includes('exists') ? exist[0].exists : false
+  
+                  formated_text = `\nNome: ${data[0].nome}\nidade: ${data[0].idade}\n\nCPF: ${data[0].cpf}\nCPF real? *${cpf_real}* \n\nRG: ${data[0].rg}\nRG real? *${rg_real}*\n\nData nasc.: ${data[0].data_nasc}\nsexo: ${data[0].sexo}\nsigno: ${data[0].signo}\nmae: ${data[0].mae}\nPai: ${data[0].pai}\nEmail: ${data[0].email}\nSenha: ${data[0].senha}\nCEP: ${data[0].cep}\nEndereço: ${data[0].endereco}\nNumero: ${data[0].numero}\nBairro: ${data[0].bairro}\nCidade: ${data[0].cidade}\nEstado: ${data[0].estado}\nTell Fixo: ${data[0].telefone_fixo}\n\nCelular: ${data[0].celular}\nExist Wapp: ${number?"Existe":"Não existe"}\n\nAltura: ${data[0].altura}\nPeso: ${data[0].peso}\nTipo Sang.: ${data[0].tipo_sanguineo}\nCor: ${data[0].cor}\n`;
+  
                   escrevendo(4)
                   await client.sendMessage(from, { text: "Pessoa:\n" + formated_text }, { quoted: info });
                 }
@@ -503,9 +500,9 @@ if (!isCmd && isMsg) {
                 console.error(`Erro:`, error);
               }
             };
-
+  
             gerar_pessoa()
-
+  
             break;
 
 
